@@ -5,7 +5,7 @@ class ProcessedTweet:
         self.loc = {'lat': 0, 'lon': 0}
         self.status_id = None
         self.text = None
-        self.time = None
+        self.datetime = None
         self.inreply = None
     def set_loc(self, coordinates):
         self.loc['lat'] = coordinates['coordinates'][0]
@@ -19,7 +19,7 @@ class ProcessedTweet:
             return '\t'.join([self.user, 
                               self.text, 
                               self.status_id, 
-                              self.time, 
+                              self.datetime, 
                               str(self.loc['lat']), 
                               str(self.loc['lon'])])+'\n'
         except Exception as e:
@@ -47,7 +47,7 @@ class ProcessedTweet:
         self.text = tweet['text'].replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
         self.status_id = tweet['id_str']
         self.user = tweet['user']['id_str']
-        self.time = tweet['created_at']
+        self.datetime = tweet['created_at']
         if 'coordinates' in tweet and tweet['coordinates']: 
             self.set_loc(tweet['coordinates'])
         self.set_inreply(tweet)
