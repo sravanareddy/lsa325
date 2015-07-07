@@ -7,64 +7,7 @@ import codecs
 import sys
 import json
 import string
-                    
-class ProcessedTweet:
-    def __init__(self):
-        self.user = None 
-        self.loc = {'lat': None, 'lon': None}
-        self.status_id = None
-        self.text = None
-        self.time = None
-    def set_text(self, text):
-        self.text = text
-    def set_statusid(self, status_id):
-        self.status_id = status_id
-    def set_user(self, userid):
-        self.user = userid
-    def set_time(self, dstr):
-        self.time = dstr
-    def set_loc(self, coordinates):
-        self.loc['lat'] = coordinates['coordinates'][0]
-        self.loc['lon'] = coordinates['coordinates'][1]
-    def __str__(self):
-        try:
-            return '\t'.join([self.user, self.text, self.status_id, self.time, str(self.loc['lat']), str(self.loc['lon'])])+'\n'
-        except Exception as e:
-            print e
-            return ''
- 
-def process_tweet(tweet, userinfo):
-    ptweet = ProcessedTweet()
-    if tweet=='' or tweet=={}:  #blank lines                   
-        return
-    elif 'lang' not in tweet or tweet['lang']!='en':  #non-english tweets
-        return
-    elif 'retweeted_status' in tweet: #native retweets
-        return
-    elif tweet['text'].startswith('RT'):  #naive retweets
-        return
-    elif not tweet['coordinates'] or not tweet['coordinates']['coordinates']: #geo-location
-        return
-    elif tweet['user']['contributors_enabled']:   #shared accounts
-        return
-    elif tweet['user']['verified']:   #celebrities
-        return
-    elif not tweet['text']:   #blank
-        return
-    else:
-        ptweet.set_text(tweet['text'].replace('\n', ' ').replace('\r', ' ').replace('\t', ' '))
-        ptweet.set_statusid(tweet['id_str'])
-        ptweet.set_user(tweet['user']['id_str'])
-        ptweet.set_time(tweet['created_at'])
-        ptweet.set_loc(tweet['coordinates'])
-    
-    if 'user' in tweet:
-        if ptweet.user not in userinfo:
-            userinfo[ptweet.user] = {}
-        for attr in ['screen_name', 'created_at', 'name', 'location', 'statuses_count', 'friends_count', 'following', 'favourites_count', 'description']:
-            userinfo[ptweet.user][attr] = tweet['user'][attr]
-    
-    return ptweet
+from utilities import ProcessedTweet                    
 
 class CustomStreamer(TwythonStreamer):
     def __init__(self, app_key, app_secret, oauth_token, oauth_token_secret, start_time, maxsecs):
@@ -80,13 +23,14 @@ class CustomStreamer(TwythonStreamer):
         
     def on_success(self, tweet):
         if tweet:
-            ptweet = process_tweet(tweet, self.userinfo)
-            if ptweet:
+            ptweet = ProcessedTweet()
+            success = ptweet.process_raw(tweet, self.userinfo, requiregeo=True)
+            if success:
                 o.write(ptweet.__str__())
-                if 'in_reply_to_user_id_str' in tweet and tweet['in_reply_to_user_id_str']:
-                    #tweet is a reply
-                    orep.write(ptweet.user+'/'+ptweet.status_id+': '+
-                               tweet['in_reply_to_user_id_str']+'/'+str(tweet['in_reply_to_status_id'])+'\n')
+                if ptweet.inreply:
+                    orep.write('/'.join([ptweet.user, ptweet.status_id])
+                               +': '
+                               +'/'.join(ptweet.inreply)+'\n')
         #check if max time has lapsed
         if time.time()-self.start_time>maxsecs:
             self.disconnect()
