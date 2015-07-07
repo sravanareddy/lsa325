@@ -54,10 +54,10 @@ def get_mutual_information(user_features, user_gender):
     print "Computed mutual information"
 
     feature_scores = sorted(mi.items(), key=lambda x:x[1], reverse=True)
-    print 'Feature\t\tMI\tP(Female|Feature)'
+    print 'Feature\tMI\tP(Female|Feature)'
     for feature, score in feature_scores[:200]:
         prob_female = pospaircounts[(feature, 'F')]/posfeatcounts[feature]  #P(female|feat)
-        print '{0}\t\t{1:.3f}\t{2:.3f}'.format(feature, score, prob_female)
+        print '{0}\t{1:.3f}\t{2:.3f}'.format(feature, score, prob_female)
 
 if __name__=='__main__':
     filename = 'user.gender.taggedtweets'
