@@ -2,68 +2,96 @@ from __future__ import division
 """Associate text features with each category, compute probabilities and MI"""
 
 from math import log
-from collections import defaultdict
 import sys
 
 def log2(x):
     return log(x, 2)
 
-def parse_data(filename):
-    user_features = defaultdict(set)   #{user: set of features}
-    user_category = {}
-    for line in open(filename):
-        userid, category, date, statusid, rawtweet, toktweet, tagtweet = line.split('\t')
-        feats = set(toktweet.lower().split())  #lowercase and split into words
-        user_features[userid].update(feats)  #update tweet to user's set of all features
-        if userid not in user_category:
-            user_category[userid] = category
-    print "Parsed data"
-    return user_features, user_category
+#Note for programmers: code will be cleaner with defaultdict. using ordinary dicts here for clarity
 
-def get_mutual_information(user_features, user_category):
-    """Get mutual information between every feature and category"""
-    pospaircounts = defaultdict(float)   #Count(feat, c1), Count(feat, c2)
-    negpaircounts = defaultdict(float)  #Count(no feat, c1), Count(no feat, c2)
-    posfeatcounts = defaultdict(float)  #Count(feat)
-    negfeatcounts = defaultdict(float)   #Count(no feat)
-
-    categorycounts = defaultdict(float)    #Count(category)
+def get_mutual_information(filename):
+    """Read and parse data, compute mutual information between words and user categories"""
+    categories = {}   #{category: speakers of this category}
+    features = {}  #{feat: speakers who use this feature}
+    pos_categories_features = {}   #{category: {feat: speakers of category who use this feat}}
+    neg_categories_features = {}   #{category: {feat: speakers of category who do not use this feat}}
+    users = set()   #set of all users in data
     
-    featureset = reduce(lambda x,y:x.union(y), user_features.values()) #set of all features across all users
+    for line in open(filename):
+        userid, c, date, statusid, rawtweet, toktweet, tagtweet = line.split('\t')
+        users.add(userid)
+        
+        if c not in categories:
+            categories[c] = set()
+            pos_categories_features[c] = {}
+        categories[c].add(userid)
+            
+        feats = set(toktweet.lower().split())  #lowercase tweet and split into words
 
-    for userid, category in user_category.items():
-        print '.',
-        for feature in featureset:
-            if feature in user_features[userid]:
-                pospaircounts[(feature, category)]+=1
-                posfeatcounts[feature]+=1
+        for feat in feats:
+            if feat not in pos_categories_features[c]:
+                pos_categories_features[c][feat] = set()
+            pos_categories_features[c][feat].add(userid)
+            
+            if feat not in features:
+                features[feat] = set()
+            features[feat].add(userid)
+
+    print "Parsed data"
+
+    numfeats = len(features)  #num of features
+    print numfeats, "features"
+    numusers = len(users)   #num of users 
+    print numusers, "users"
+
+    #keep sizes of sets, not sets themselves
+    for feat in features:
+        features[feat] = len(features[feat])
+    for c in categories:
+        categories[c] = len(categories[c])
+    for c in pos_categories_features:
+        for feat in features:
+            if feat in pos_categories_features[c]:
+                pos_categories_features[c][feat] = len(pos_categories_features[c][feat])
             else:
-                negpaircounts[(feature, category)]+=1
-                negfeatcounts[feature]+=1
-        categorycounts[category]+=1
-                   
-    numusers = len(user_features)
-    mi = defaultdict(float)
-    for feature in featureset:
-        for category in categorycounts:
-            if pospaircounts[(feature, category)]>0:  #to avoid log error
-                mi[feature] += pospaircounts[(feature, category)]/numusers * log2(pospaircounts[(feature, category)]*numusers/(categorycounts[category] * posfeatcounts[feature]))
-            if  negpaircounts[(feature, category)]>0:   #to avoid log error
-                 mi[feature] += negpaircounts[(feature, category)]/numusers * log2(negpaircounts[(feature, category)]*numusers/(categorycounts[category] * negfeatcounts[feature]))
+                pos_categories_features[c][feat] = 0
+
+    for c in categories:
+        print c, categories[c], "users"
+
+    print "Computed counts"
+            
+    mi = {}
+    for feat in features:
+        mi[feat] = 0.0
+        for c in categories:
+            #print c, feat, features[feat], pos_categories_features[c][feat]
+            
+            catprob = categories[c]/numusers
+
+            #prob of speakers of category c using feat
+            featprob = features[feat]/numusers
+            jointprob = pos_categories_features[c][feat]/numusers
+            if jointprob > 0 and featprob > 0:
+                mi[feat] += jointprob * log2(jointprob/(catprob * featprob))
+                
+            #prob of speakers of category c NOT using feat
+            featprob = 1 - featprob
+            jointprob = (categories[c] - pos_categories_features[c][feat])/numusers
+            if jointprob > 0 and featprob > 0:
+                mi[feat] += jointprob * log2(jointprob/(catprob * featprob))
 
     print "Computed mutual information"
 
     feature_scores = sorted(mi.items(), key=lambda x:x[1], reverse=True)
-    refcat = categorycounts.keys()[0]  #pick one of the two categories
-    print 'Feature\tMI\tP({0}|Feature)'.format(refcat)
-    for feature, score in feature_scores[:200]:
-        prob = pospaircounts[(feature, refcat)]/posfeatcounts[feature]  
-        print '{0}\t{1:.3f}\t{2:.3f}'.format(feature, score, prob)
+    refcat = categories.keys()[0]  #pick one of the categories
+    print 'Feature\tMI\tP({0}|Feature)\tNum. users'.format(refcat)
+    for feat, score in feature_scores[:200]:
+        prob = pos_categories_features[refcat][feat]/features[feat]
+        print '{0}\t{1:.3f}\t{2:.3f}\t{3}'.format(feat, score, prob, features[feat])
 
 if __name__=='__main__':
     filename = sys.argv[1]
-    
-    user_features, user_category = parse_data(filename)
-    get_mutual_information(user_features, user_category)
+    get_mutual_information(filename)
                                                                                                                                                                                                
         
