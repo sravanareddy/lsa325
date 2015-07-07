@@ -85,10 +85,10 @@ def get_mutual_information(filename):
 
     feature_scores = sorted(mi.items(), key=lambda x:x[1], reverse=True)
     refcat = categories.keys()[0]  #pick one of the categories
-    print 'Feature\tMI\tP({0}|Feature)'.format(refcat)
+    print 'Feature\tMI\tP({0}|Feature)\tNum. users'.format(refcat)
     for feat, score in feature_scores[:200]:
         prob = pos_categories_features[refcat][feat]/features[feat]
-        print '{0}\t{1:.3f}\t{2:.3f}'.format(feat, score, prob)
+        print '{0}\t{1:.3f}\t{2:.3f}\t{3}'.format(feat, score, prob, features[feat])
 
 if __name__=='__main__':
     filename = sys.argv[1]
