@@ -1,3 +1,4 @@
+import codecs
 
 class ProcessedTweet:
     def __init__(self):
@@ -25,7 +26,7 @@ class ProcessedTweet:
         except Exception as e:
             print e
             return ''
-    def process_raw(self, tweet, userinfo, requiregeo, lang=None):
+    def process_raw(self, tweet, userinfo, requiregeo, lang=None, requireword=None):
         if tweet=='' or tweet=={}:  #blank lines                                    
             return False
         if lang and ('lang' not in tweet or tweet['lang']!=lang):  #tweets from wrong language    
@@ -42,7 +43,8 @@ class ProcessedTweet:
             return False
         if not tweet['text']:   #blank                                                
             return False
-        
+        if requireword and requireword not in tweet['text']:  #word to be in tweet
+            return False
         #hopefully, tweet is valid now
         self.text = tweet['text'].replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
         self.status_id = tweet['id_str']
@@ -61,8 +63,20 @@ class ProcessedTweet:
                          'location', 
                          'statuses_count', 
                          'friends_count', 
-                         'following', 
-                         'favourites_count', 
-                         'description']:
+                         'followers_count', 
+                         'favourites_count']:
                 userinfo[self.user][attr] = tweet['user'][attr]
+            
+            userinfo[self.user]['description'] = tweet['user']['description'].replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
         return True
+
+def write_userinfo(userinfo, filename):
+    ou = codecs.open(filename, 'w', 'utf8')
+    fields = userinfo[userinfo.iterkeys().next()].keys() #convoluted but only way of getting list of fields
+    ou.write('userid\t'+'\t'.join(fields)+'\n')
+    for userid in userinfo:
+        ou.write(userid+'\t')
+        for field in fields:
+            ou.write(unicode(userinfo[userid][field])+'\t')
+        ou.write('\n')
+    ou.close()
