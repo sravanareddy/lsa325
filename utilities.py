@@ -25,22 +25,22 @@ class ProcessedTweet:
         except Exception as e:
             print e
             return ''
-    def process_raw(self, tweet, userinfo, requiregeo):
-        if tweet=='' or tweet=={}:  #blank lines                                                            
+    def process_raw(self, tweet, userinfo, requiregeo, lang=None):
+        if tweet=='' or tweet=={}:  #blank lines                                    
             return False
-        if 'lang' not in tweet or tweet['lang']!='en':  #non-english tweets                                     
+        if lang and ('lang' not in tweet or tweet['lang']!=lang):  #tweets from wrong language    
             return False
-        if 'retweeted_status' in tweet: #native retweets                                                        
+        if 'retweeted_status' in tweet: #native retweets                               
             return False
-        if tweet['text'].startswith('RT'):  #naive retweets                                                     
+        if tweet['text'].startswith('RT'):  #naive retweets                            
             return False
         if requiregeo and (not tweet['coordinates'] or not tweet['coordinates']['coordinates']): #geo-location  
             return False
-        if tweet['user']['contributors_enabled']:   #shared accounts                                            
+        if tweet['user']['contributors_enabled']:   #shared accounts                   
             return False
-        if tweet['user']['verified']:   #celebrities                                                             
+        if tweet['user']['verified']:   #celebrities                                  
             return False
-        if not tweet['text']:   #blank                                                                            
+        if not tweet['text']:   #blank                                                
             return False
         
         #hopefully, tweet is valid now

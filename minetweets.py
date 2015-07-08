@@ -24,7 +24,7 @@ class CustomStreamer(TwythonStreamer):
     def on_success(self, tweet):
         if tweet:
             ptweet = ProcessedTweet()
-            success = ptweet.process_raw(tweet, self.userinfo, requiregeo=True)
+            success = ptweet.process_raw(tweet, self.userinfo, requiregeo=True, lang='en') #change lang if needed, or set lang=None if non-restricted
             if success:
                 o.write(ptweet.__str__())
                 if ptweet.inreply:

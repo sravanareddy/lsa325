@@ -16,20 +16,20 @@ if __name__=='__main__':
     CONSUMER_KEY = "JksOBh39nyd95jagJQTZ8Q"
     CONSUMER_SECRET = "kx87N1Ge8iWuzwcWUH55PhUDOFCqBju6UqUtroYFo"
 
-    word = sys.argv[1]
+    searchterms = sys.argv[1]
     n = int(sys.argv[2])
     
-    o = codecs.open(word+'.statuses.tsv', 'w', 'utf-8')
-    orep = codecs.open(word+'.replies.txt', 'w', 'utf-8')
+    o = codecs.open(searchterms+'.statuses.tsv', 'w', 'utf-8')
+    orep = codecs.open(searchterms+'.replies.txt', 'w', 'utf-8')
     
     userinfo = {}
     searcher = Twython(CONSUMER_KEY, CONSUMER_SECRET, OAUTH_TOKEN, OAUTH_SECRET)
     until_id = 1e30
     for batch in range(n):  #at most n*100 tweets
-        results = searcher.search(q=word.replace('_', ' OR '), count=100, max_id=until_id-1)
+        results = searcher.search(q=searchterms.replace('_', ' OR '), count=100, max_id=until_id-1, result_type='recent')  #can change result_type to popular or mixed 
         for tweet in results['statuses']:
             ptweet = ProcessedTweet()
-            success = ptweet.process_raw(tweet, userinfo, requiregeo = False)
+            success = ptweet.process_raw(tweet, userinfo, requiregeo = False, lang = 'en') #change language, or set to None if unrestricted
             if success:
                 o.write(ptweet.__str__())
                 if ptweet.inreply:
@@ -40,7 +40,7 @@ if __name__=='__main__':
         print "Searching until status", until_id
         time.sleep(5) #throttling
     
-    oj = open(word+'.userinfo.json', 'w')
+    oj = open(searchterms+'.userinfo.json', 'w')
     json.dump(userinfo, oj)
     oj.close()
     
