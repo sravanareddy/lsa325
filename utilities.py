@@ -70,7 +70,7 @@ class ProcessedTweet:
             userinfo[self.user]['description'] = tweet['user']['description'].replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
         return True
 
-def write_userinfo(userinfo, filename):
+def write_dict_tsv(userinfo, filename):
     ou = codecs.open(filename, 'w', 'utf8')
     fields = userinfo[userinfo.iterkeys().next()].keys() #convoluted but only way of getting list of fields
     ou.write('userid\t'+'\t'.join(fields)+'\n')

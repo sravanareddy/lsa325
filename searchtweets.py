@@ -6,7 +6,7 @@ import time
 import codecs
 import sys
 import string
-from utilities import ProcessedTweet, write_userinfo
+from utilities import ProcessedTweet, write_dict_tsv
                     
 if __name__=='__main__':
     
@@ -49,4 +49,4 @@ if __name__=='__main__':
     o.close()
     
     if len(userinfo)>0:
-        write_userinfo(userinfo, word+'.userinfo.tsv')    
+        write_dict_tsv(userinfo, word+'.userinfo.tsv')    
