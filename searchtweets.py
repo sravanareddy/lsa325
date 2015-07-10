@@ -7,26 +7,31 @@ import codecs
 import sys
 import string
 from utilities import ProcessedTweet, write_dict_tsv
-                    
-if __name__=='__main__':
-    
-    OAUTH_TOKEN = "14656609-IzjpUGipO5uDse1rFr3nXfBvVbX9T4hMHjkAvwA55"
-    OAUTH_SECRET = "JYZoOPQK28fFv98d4zZg1OUBqIUKJQ6poQglmioz4"
-    CONSUMER_KEY = "JksOBh39nyd95jagJQTZ8Q"
-    CONSUMER_SECRET = "kx87N1Ge8iWuzwcWUH55PhUDOFCqBju6UqUtroYFo"
+import argparse
 
-    word = sys.argv[1]
-    n = int(sys.argv[2])
+if __name__=='__main__':
+    #file twitapikeys.txt should contain at least two lines with consumer key and secret, optionally followed by access token and secret 
+    CONSUMER_KEY, CONSUMER_SECRET = open('twitapikeys.txt').read().split()[:2] 
     
-    o = codecs.open(word+'.statuses.tsv', 'w', 'utf-8')
-    orep = codecs.open(word+'.replies.txt', 'w', 'utf-8')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--basename', help='base name of file to write to', type=str)
+    parser.add_argument('--numtweets', help='number of tweets to search in', type=int)
+    parser.add_argument('--searchterm', help='term to search for. separate multiple terms by _')
+    parser.add_argument('--lang', help='language of tweets (ISO code). default = en', default='en')
+    args = parser.parse_args()
+    
+    args.searchterm = args.searchterm.replace('_', ' ')
+    
+    o = codecs.open(args.basename+'.statuses.tsv', 'w', 'utf-8')
+    orep = codecs.open(args.basename+'.replies.txt', 'w', 'utf-8')
     
     o.write('userid\ttweet\tstatusid\tdate\tlat\tlon\n')
+    
     userinfo = {}
-    searcher = Twython(CONSUMER_KEY, CONSUMER_SECRET, OAUTH_TOKEN, OAUTH_SECRET)
+    searcher = Twython(CONSUMER_KEY, CONSUMER_SECRET)
     until_id = 1e30
-    for batch in range(n):  #at most n*100 tweets
-        results = searcher.search(q=word.replace('_', ' '), count=100, max_id=until_id-1, result_type='recent')  #can change result_type to popular or mixed
+    for batch in range(args.numtweets/100):  
+        results = searcher.search(q=args.searchterm, count=100, max_id=until_id-1, result_type='recent')  #can change result_type to popular or mixed
         print "Searching until status", until_id
 
         if len(results['statuses'])==1:  #usually repeat after data runs out
@@ -34,7 +39,7 @@ if __name__=='__main__':
         
         for tweet in results['statuses']:
             ptweet = ProcessedTweet()
-            success = ptweet.process_raw(tweet, userinfo, requiregeo = False, lang = 'en', requireword = word.replace('_', ' ')) #change language, or set to None if unrestricted
+            success = ptweet.process_raw(tweet, userinfo, requiregeo = False, lang = args.lang, requireword = args.searchterm) 
             if success:
                 o.write(ptweet.__str__())
                 if ptweet.inreply:
@@ -48,5 +53,4 @@ if __name__=='__main__':
     orep.close()
     o.close()
     
-    if len(userinfo)>0:
-        write_dict_tsv(userinfo, word+'.userinfo.tsv')    
+    write_dict_tsv(userinfo, args.basename+'.userinfo.tsv')    

@@ -24,12 +24,14 @@ class ProcessedTweet:
                               str(self.loc['lat']), 
                               str(self.loc['lon'])])+'\n'
         except Exception as e:
-            print e
-            return ''
+            print 'Error creating tweet representation', e
+            return ' '
     def process_raw(self, tweet, userinfo, requiregeo, lang=None, requireword=None):
         if tweet=='' or tweet=={}:  #blank lines                                    
             return False
         if lang and ('lang' not in tweet or tweet['lang']!=lang):  #tweets from wrong language    
+            return False
+        if not tweet['text'] or tweet['text']=='':   #blank                                         
             return False
         if 'retweeted_status' in tweet: #native retweets                               
             return False
@@ -40,8 +42,6 @@ class ProcessedTweet:
         if tweet['user']['contributors_enabled']:   #shared accounts                   
             return False
         if tweet['user']['verified']:   #celebrities                                  
-            return False
-        if not tweet['text']:   #blank                                                
             return False
         if requireword and requireword not in tweet['text']:  #word to be in tweet
             return False
@@ -73,6 +73,8 @@ class ProcessedTweet:
         return True
 
 def write_dict_tsv(userinfo, filename):
+    if len(userinfo)==0:
+        return
     ou = codecs.open(filename, 'w', 'utf8')
     fields = userinfo[userinfo.iterkeys().next()].keys() #convoluted but only way of getting list of fields
     ou.write('userid\t'+'\t'.join(fields)+'\n')
