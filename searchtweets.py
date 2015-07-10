@@ -26,7 +26,7 @@ if __name__=='__main__':
     searcher = Twython(CONSUMER_KEY, CONSUMER_SECRET, OAUTH_TOKEN, OAUTH_SECRET)
     until_id = 1e30
     for batch in range(n):  #at most n*100 tweets
-        results = searcher.search(q=word, count=100, max_id=until_id-1, result_type='recent')  #can change result_type to popular or mixed
+        results = searcher.search(q=word.replace('_', ' '), count=100, max_id=until_id-1, result_type='recent')  #can change result_type to popular or mixed
         print "Searching until status", until_id
 
         if len(results['statuses'])==1:  #usually repeat after data runs out
@@ -34,7 +34,7 @@ if __name__=='__main__':
         
         for tweet in results['statuses']:
             ptweet = ProcessedTweet()
-            success = ptweet.process_raw(tweet, userinfo, requiregeo = False, lang = 'en', requireword = word) #change language, or set to None if unrestricted
+            success = ptweet.process_raw(tweet, userinfo, requiregeo = False, lang = 'en', requireword = word.replace('_', ' ')) #change language, or set to None if unrestricted
             if success:
                 o.write(ptweet.__str__())
                 if ptweet.inreply:

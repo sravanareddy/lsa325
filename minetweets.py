@@ -42,7 +42,8 @@ if __name__=='__main__':
     CONSUMER_KEY = "JksOBh39nyd95jagJQTZ8Q"
     CONSUMER_SECRET = "kx87N1Ge8iWuzwcWUH55PhUDOFCqBju6UqUtroYFo"
 
-    basename, maxhours = sys.argv[1:3]
+    basename = sys.argv[1]
+    maxhours = sys.argv[2]
     
     maxsecs = float(maxhours)*60*60  #how long to stream
     start_time = time.time()
@@ -54,6 +55,7 @@ if __name__=='__main__':
     while time.time()-start_time<maxsecs:
         try:
             stream.statuses.filter(locations='-138, 24, -52, 80') #US and Canada; change bounding box for other locations
+            #stream.statuses.filter(track='ikr') #stream tweets containing word 
         except Exception as e:
             print e
             continue
