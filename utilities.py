@@ -66,8 +66,10 @@ class ProcessedTweet:
                          'followers_count', 
                          'favourites_count']:
                 userinfo[self.user][attr] = tweet['user'][attr]
-            
-            userinfo[self.user]['description'] = tweet['user']['description'].replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+            if tweet['user']['description']:
+                userinfo[self.user]['description'] = tweet['user']['description'].replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+            else:
+                userinfo[self.user]['description'] = '' #black description
         return True
 
 def write_dict_tsv(userinfo, filename):
