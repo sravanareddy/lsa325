@@ -43,8 +43,8 @@ if __name__=='__main__':
     CONSUMER_KEY, CONSUMER_SECRET, OAUTH_TOKEN, OAUTH_SECRET = open('twitapikeys.txt').read().split()
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basename', help='base name of file to write to', type=str)
-    parser.add_argument('--maxhours', help='maximum hours to run script', type=float)
+    parser.add_argument('--basename', help='base name of file to write to', type=str, required=True)
+    parser.add_argument('--maxhours', help='maximum hours to run script', type=float, required=True)
     parser.add_argument('--boundingbox', help='location bounding box. default (US and Canada) = -138, 24, -52, 80', default='-138, 24, -52, 80', type=str)  #US and Canada; change bounding box for other locations
     parser.add_argument('--lang', help='language of tweets (ISO code). default = en', default='en')
     args = parser.parse_args()

@@ -14,9 +14,9 @@ if __name__=='__main__':
     CONSUMER_KEY, CONSUMER_SECRET = open('twitapikeys.txt').read().split()[:2] 
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basename', help='base name of file to write to', type=str)
-    parser.add_argument('--numtweets', help='number of tweets to search in', type=int)
-    parser.add_argument('--searchterm', help='term to search for. separate multiple terms by _')
+    parser.add_argument('--basename', help='base name of file to write to', type=str, required=True)
+    parser.add_argument('--numtweets', help='number of tweets to search in', type=int, default=10000)
+    parser.add_argument('--searchterm', help='term to search for. separate multiple terms by _', required=True)
     parser.add_argument('--lang', help='language of tweets (ISO code). default = en', default='en')
     args = parser.parse_args()
     
