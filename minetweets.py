@@ -7,7 +7,7 @@ import codecs
 import sys
 import json
 import string
-from utilities import ProcessedTweet                    
+from utilities import ProcessedTweet, write_json_tsv
 
 class CustomStreamer(TwythonStreamer):
     def __init__(self, app_key, app_secret, oauth_token, oauth_token_secret, start_time, maxsecs):
@@ -58,9 +58,7 @@ if __name__=='__main__':
             print e
             continue
 
-    oj = open(basename+'.userinfo.json', 'w')
-    json.dump(stream.userinfo, oj)
-    oj.close()
+    write_json_tsv(stream.userinfo, basename+'.userinfo.tsv')
     
     orep.close()
     o.close()
