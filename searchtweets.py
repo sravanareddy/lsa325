@@ -16,11 +16,12 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--basename', help='base name of file to write to', type=str, required=True)
     parser.add_argument('--numtweets', help='number of tweets to search in', type=int, default=10000)
-    parser.add_argument('--searchterm', help='term to search for. separate multiple terms by _', required=True)
-    parser.add_argument('--lang', help='language of tweets (ISO code). default = en', default='en')
+    parser.add_argument('--searchterm', help='term to search for. separate multiple terms by _', type=lambda s: unicode(s, 'utf8'), required=True)
+    parser.add_argument('--lang', help='language of tweets (ISO code). default = en', default=None)
     args = parser.parse_args()
     
     args.searchterm = args.searchterm.replace('_', ' ')
+    print 'Searching', args.lang, 'tweets containing', args.searchterm, 'returning a maximum of', args.numtweets, 'results'
     
     o = codecs.open(args.basename+'.statuses.tsv', 'w', 'utf-8')
     orep = codecs.open(args.basename+'.replies.txt', 'w', 'utf-8')

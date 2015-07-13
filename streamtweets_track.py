@@ -45,7 +45,7 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--basename', help='base name of file to write to', type=str, required=True)
     parser.add_argument('--maxhours', help='maximum hours to run script', type=float, required=True)
-    parser.add_argument('--lang', help='language of tweets (ISO code). default = en', default='en')
+    parser.add_argument('--lang', help='language of tweets (ISO code). default = en', default=None)
     parser.add_argument('--trackterm', help='term to track in streamer. separate multiple words by _.', required=True)
     
     args = parser.parse_args()
