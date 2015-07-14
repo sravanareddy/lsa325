@@ -3,28 +3,27 @@
 import scipy
 from scipy.cluster.vq import kmeans, vq
 from collections import defaultdict
-import sys
+from similar_words import load_vectors
+import argparse
 
 if __name__=='__main__':
-    basename = sys.argv[1]
-    maxwords = 10000
-    k = 1000
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--basename', help='base name of word vector files', type=str)
+    parser.add_argument('--maxwords', help='maximum number of words to cluster', type=int)
+    parser.add_argument('--k', help='number of clusters', type=int)
+    args = parser.parse_args()
     
-    vectors = scipy.loadtxt(basename+'.word2vec')
-    vectors = vectors[:maxwords, :]
-    words = map(lambda line: line.split()[0],
-                open(basename+'.wordcounts').readlines())[:maxwords]
-    print "Loaded data"
-
-    centroids,_ = kmeans(vectors, k)
+    vectors, words = load_vectors(args.basename, args.maxwords)
+    
+    centroids,_ = kmeans(vectors, args.k)
     idx, _ = vq(vectors, centroids)
 
     clusters = defaultdict(set)
     for i, c in enumerate(idx):
         clusters[c].add(words[i])
 
-    for c in clusters:
-        print 'CLUSTER', c,
+    for c in range(args.k):
+        print 'CLUSTER', c+1,
         for word in clusters[c]:
             print word,
         print
