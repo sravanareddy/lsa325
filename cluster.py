@@ -1,7 +1,7 @@
 """Cluster word2vec words using k-means"""
 
 import scipy
-from scipy.cluster.vq import kmeans, vq
+from scipy.cluster.vq import kmeans, vq, whiten
 from collections import defaultdict
 from similar_words import load_vectors
 import argparse
@@ -14,17 +14,19 @@ if __name__=='__main__':
     args = parser.parse_args()
     
     vectors, words = load_vectors(args.basename, args.maxwords)
-    
-    centroids,_ = kmeans(vectors, args.k)
-    idx, _ = vq(vectors, centroids)
 
-    clusters = defaultdict(set)
+    vectors = whiten(vectors)
+    centroids,_ = kmeans(vectors, args.k)
+    idx, dist_to_center = vq(vectors, centroids)
+
+    clusters = defaultdict(list)
     for i, c in enumerate(idx):
-        clusters[c].add(words[i])
+        clusters[c].append((words[i], dist_to_center[i]))
 
     for c in range(args.k):
         print 'CLUSTER', c+1,
-        for word in clusters[c]:
+        words = sorted(clusters[c], key=lambda x:x[0])
+        for word, _ in words:
             print word,
         print
         print
