@@ -51,6 +51,10 @@ if __name__=='__main__':
     print "The clustering coefficient is {0:.2f}%".format(snap.GetClustCf(big_scc)*100)
     
     print "The diameter is approximately {0}".format(snap.GetBfsFullDiam(big_scc, 1000))
+
+    #store CC for graphviz
+    snap.SaveGViz(big_scc, filename+".dot", "Largest Connected Component")
+    print "Saved GraphViz"
     
     #page rank over entire graph to detect "celebrities"
     PRankH = snap.TIntFltH()
